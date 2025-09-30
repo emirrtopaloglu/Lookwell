@@ -12,7 +12,17 @@ const getGreeting = () => {
   return 'Good Evening';
 };
 
-export const HeaderComponent = () => {
+interface HeaderComponentProps {
+  title?: string;
+  subtitle?: string;
+  showGreeting?: boolean;
+}
+
+export const HeaderComponent: React.FC<HeaderComponentProps> = ({
+  title,
+  subtitle,
+  showGreeting = true,
+}) => {
   const router = useRouter();
   const text = useThemeColor({}, 'text');
   const textSecondary = useThemeColor({}, 'textSecondary');
@@ -40,8 +50,15 @@ export const HeaderComponent = () => {
           <Ionicons name="sparkles" size={20} color={accent} />
         </View>
         <View style={styles.greetingContainer}>
-          <Text style={[styles.greeting, { color: textSecondary }]}>{greeting}</Text>
-          <Text style={[styles.brandName, { color: text }]}>Lookwell AI</Text>
+          {showGreeting && (
+            <Text style={[styles.greeting, { color: textSecondary }]}>{greeting}</Text>
+          )}
+          {subtitle && (
+            <Text style={[styles.greeting, { color: textSecondary }]}>{subtitle}</Text>
+          )}
+          <Text style={[styles.brandName, { color: text }]}>
+            {title || 'Lookwell AI'}
+          </Text>
         </View>
       </View>
       
