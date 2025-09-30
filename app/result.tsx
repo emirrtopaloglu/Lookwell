@@ -1,8 +1,11 @@
 import { ActionButton } from '@/components/result/ActionButton';
 import { BeforeAfterSlider } from '@/components/result/BeforeAfterSlider';
+import { FeedbackSection } from '@/components/result/FeedbackSection';
 import { Elevations, Radii, Spacing, Typography } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useCollectionStore } from '@/stores/useCollectionStore';
+import { useFeedbackStore } from '@/stores/useFeedbackStore';
+import { NegativeFeedbackReason } from '@/types/feedback';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React from 'react';
@@ -23,6 +26,7 @@ const ResultScreen = () => {
   const textOnAccent = useThemeColor({}, 'textOnAccent');
 
   const addLook = useCollectionStore((state) => state.addLook);
+  const addFeedback = useFeedbackStore((state) => state.addFeedback);
 
   // Error handling
   if (!params.generatedImageUri || !params.originalImageUri) {
@@ -94,6 +98,38 @@ const ResultScreen = () => {
     router.push('/(tabs)');
   };
 
+  const handleFeedback = (
+    type: 'positive' | 'negative',
+    reason?: NegativeFeedbackReason
+  ) => {
+    const feedback = {
+      id: Date.now().toString(),
+      generatedImageUri: params.generatedImageUri!,
+      originalImageUri: params.originalImageUri!,
+      prompt: params.prompt,
+      feedbackType: type,
+      negativeReason: reason,
+      createdAt: new Date().toISOString(),
+    };
+
+    addFeedback(feedback);
+
+    // Show appropriate message
+    if (type === 'positive') {
+      Alert.alert(
+        'Thank you! 💚',
+        'We\'re learning your style preferences to create even better looks for you.',
+        [{ text: 'Great!' }]
+      );
+    } else {
+      Alert.alert(
+        'Thanks for the feedback!',
+        'We\'ll use this to improve your future results.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   return (
     <>
       <Stack.Screen
@@ -144,6 +180,9 @@ const ResultScreen = () => {
               variant="danger"
             />
           </View>
+
+          {/* Feedback Section */}
+          <FeedbackSection onFeedback={handleFeedback} />
 
           {/* Primary Action Button */}
           <TouchableOpacity
