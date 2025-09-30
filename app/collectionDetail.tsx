@@ -1,6 +1,6 @@
-import DismissHeader from '@/components/create/DismissHeader';
-import ActionButton from '@/components/result/ActionButton';
-import { Colors, Elevations, Radii, Spacing, Typography } from '@/constants/theme';
+import { DismissHeader } from '@/components/create/DismissHeader';
+import { ActionButton } from '@/components/result/ActionButton';
+import { Elevations, Radii, Spacing, Typography } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useCollectionStore } from '@/stores/useCollectionStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,13 +8,13 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,14 +24,8 @@ export default function CollectionDetailScreen() {
 
   const background = useThemeColor({}, 'background');
   const text = useThemeColor({}, 'text');
-  const cardBackground = useThemeColor(
-    { light: Colors.light.card, dark: Colors.dark.card },
-    'card'
-  );
-  const textSecondary = useThemeColor(
-    { light: Colors.light.textSecondary, dark: Colors.dark.textSecondary },
-    'textSecondary'
-  );
+  const cardBackground = useThemeColor({}, 'backgroundAlt');
+  const textSecondary = useThemeColor({}, 'textSecondary');
 
   // Get the look from the store
   const looks = useCollectionStore((state) => state.looks);
@@ -211,7 +205,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.lg,
     borderRadius: Radii.xl,
     padding: Spacing.lg,
-    ...Elevations.small,
+    ...Elevations.level1,
   },
   infoItem: {
     marginBottom: Spacing.md,
@@ -240,7 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
-    ...Elevations.small,
+    ...Elevations.level1,
   },
   errorContainer: {
     flex: 1,
@@ -249,7 +243,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   errorText: {
-    ...Typography.h3,
+    ...Typography.title2,
     textAlign: 'center',
     marginTop: Spacing.lg,
     marginBottom: Spacing.xl,
@@ -258,7 +252,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderRadius: Radii.lg,
-    ...Elevations.small,
+    ...Elevations.level1,
   },
   backButtonText: {
     ...Typography.button,
