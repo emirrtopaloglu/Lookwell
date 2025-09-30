@@ -1,13 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import {
-    Dimensions,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { Colors, Elevations, Radii, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -42,6 +43,19 @@ function BenefitItem({ icon, text }: BenefitItemProps) {
 export default function GetStartedPage({ onGetStarted }: GetStartedPageProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  const handleGetStarted = async () => {
+    try {
+      // Set onboarding completion flag
+      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+      // Call the parent's onGetStarted callback
+      onGetStarted();
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+      // Still navigate even if AsyncStorage fails
+      onGetStarted();
+    }
+  };
 
   return (
     <View style={[styles.pageContainer, { backgroundColor: colors.background }]}>
@@ -84,7 +98,7 @@ export default function GetStartedPage({ onGetStarted }: GetStartedPageProps) {
               { backgroundColor: colors.accent },
               Platform.OS === 'ios' && Elevations.level2,
             ]}
-            onPress={onGetStarted}
+            onPress={handleGetStarted}
             activeOpacity={0.85}
           >
             <Text style={[styles.buttonText, { color: colors.textOnAccent }]}>

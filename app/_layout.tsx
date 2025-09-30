@@ -3,8 +3,11 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+// import AsyncStorage from "@react-native-async-storage/async-storage"; // Geçici yoruma alındı
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+// import { adapty } from "react-native-adapty"; // Geçici yoruma alındı
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -16,6 +19,43 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      // GEÇİCİ: Adapty devre dışı - geçersiz API key crash'e neden oluyordu
+      // Gerçek API key eklenince yorumları kaldırın
+      
+      /*
+      // Initialize Adapty SDK
+      // Replace 'YOUR_PUBLIC_SDK_KEY' with your actual Adapty public SDK key
+      await adapty.activate("PUBLIC_SDK_KEY_TO_BE_REPLACED", {
+        observerMode: false,
+      });
+
+      // Pre-fetch paywall data
+      try {
+        await adapty.getPaywall("default");
+      } catch (error) {
+        console.log("Paywall pre-fetch failed:", error);
+      }
+      */
+      
+      console.log("App initialized without Adapty (testing mode)");
+    } catch (error) {
+      console.error("Failed to initialize:", error);
+    } finally {
+      setIsReady(true);
+    }
+  };
+
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -28,8 +68,8 @@ export default function RootLayout() {
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
+            name="paywall"
+            options={{ presentation: "fullScreenModal", headerShown: false }}
           />
         </Stack>
         <StatusBar style="auto" />
