@@ -2,15 +2,17 @@ import { DismissHeader } from '@/components/create/DismissHeader';
 import { GenerateButton } from '@/components/create/GenerateButton';
 import { PromptPreview } from '@/components/create/PromptPreview';
 import { UploaderSection } from '@/components/create/UploaderSection';
+import { ProcessingModal } from '@/components/modals/ProcessingModal';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CreateScreen = () => {
   const params = useLocalSearchParams<{ prompt?: string; modelId?: string }>();
+  const router = useRouter();
   const background = useThemeColor({}, 'background');
 
   const [userImageUri, setUserImageUri] = useState<string | undefined>();
@@ -91,11 +93,20 @@ const CreateScreen = () => {
       modelId: params.modelId,
     });
 
-    // Simulate processing
+    // Simulate processing and navigate to result
     setTimeout(() => {
       setIsGenerating(false);
-      Alert.alert('Success', 'Look generated! (Demo)');
-    }, 2000);
+      
+      // Navigate to result screen with demo data
+      router.push({
+        pathname: '/result',
+        params: {
+          originalImageUri: userImageUri,
+          generatedImageUri: userImageUri, // In demo, using same image
+          prompt: finalPrompt,
+        },
+      });
+    }, 5000); // 5 seconds to show the processing modal
   };
 
   const canGenerate = Boolean(
@@ -139,6 +150,9 @@ const CreateScreen = () => {
           disabled={!canGenerate}
           loading={isGenerating}
         />
+
+        {/* Processing Modal */}
+        <ProcessingModal isVisible={isGenerating} />
       </SafeAreaView>
     </>
   );
