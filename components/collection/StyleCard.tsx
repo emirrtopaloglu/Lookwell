@@ -1,4 +1,4 @@
-import { Elevations, Radii, Spacing } from '@/constants/theme';
+import { Elevations, Radii } from '@/constants/theme';
 import { CollectionItem } from '@/types/collection';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -16,9 +16,6 @@ export const StyleCard: React.FC<StyleCardProps> = ({ item }) => {
       pathname: '/collectionDetail',
       params: {
         id: item.id,
-        imageUri: item.imageUri,
-        prompt: item.prompt || '',
-        createdAt: item.createdAt,
       },
     });
   };

@@ -1,36 +1,102 @@
-import { Elevations, Radii, Spacing, Typography } from '@/constants/theme';
+import DismissHeader from '@/components/create/DismissHeader';
+import ActionButton from '@/components/result/ActionButton';
+import { Colors, Elevations, Radii, Spacing, Typography } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useCollectionStore } from '@/stores/useCollectionStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const CollectionDetailScreen = () => {
+export default function CollectionDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    id: string;
-    imageUri: string;
-    prompt: string;
-    createdAt: string;
-  }>();
-  
+
   const background = useThemeColor({}, 'background');
-  const backgroundElevated = useThemeColor({}, 'backgroundElevated');
   const text = useThemeColor({}, 'text');
-  const textSecondary = useThemeColor({}, 'textSecondary');
-  const textMuted = useThemeColor({}, 'textMuted');
-  const border = useThemeColor({}, 'border');
-  const danger = useThemeColor({}, 'danger');
-  const textOnAccent = useThemeColor({}, 'textOnAccent');
+  const cardBackground = useThemeColor(
+    { light: Colors.light.card, dark: Colors.dark.card },
+    'card'
+  );
+  const textSecondary = useThemeColor(
+    { light: Colors.light.textSecondary, dark: Colors.dark.textSecondary },
+    'textSecondary'
+  );
 
+  // Get the look from the store
+  const looks = useCollectionStore((state) => state.looks);
   const removeLook = useCollectionStore((state) => state.removeLook);
+  const look = looks.find((item) => item.id === id);
 
+  // If the look is not found, show an error
+  if (!look) {
+    return (
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: background }]}
+        edges={['top', 'bottom']}
+      >
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <DismissHeader title="Look Not Found" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color={textSecondary} />
+          <Text style={[styles.errorText, { color: text }]}>
+            This look could not be found.
+          </Text>
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: cardBackground }]}
+            onPress={() => router.back()}
+          >
+            <Text style={[styles.backButtonText, { color: text }]}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Format the creation date
+  const formatDate = (isoString: string): string => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Handle share
+  const handleShare = async () => {
+    try {
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(look.imageUri);
+      } else {
+        Alert.alert('Error', 'Sharing is not available on this device');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share the image');
+    }
+  };
+
+  // Handle delete
   const handleDelete = () => {
     Alert.alert(
       'Delete Look',
-      'Are you sure you want to remove this look from your collection?',
+      'Are you sure you want to delete this look from your collection?',
       [
         {
           text: 'Cancel',
@@ -40,7 +106,7 @@ const CollectionDetailScreen = () => {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            removeLook(params.id);
+            removeLook(id!);
             router.back();
           },
         },
@@ -48,159 +114,153 @@ const CollectionDetailScreen = () => {
     );
   };
 
-  const formatDate = (isoDate: string) => {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  // Handle create similar
+  const handleCreateSimilar = () => {
+    router.back();
+    // Navigate to create screen with the prompt pre-filled
+    router.push({
+      pathname: '/create',
+      params: { prompt: look.prompt || '' },
     });
   };
 
   return (
-    <>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: background }]}
+      edges={['top', 'bottom']}
+    >
       <Stack.Screen
         options={{
-          presentation: 'modal',
           headerShown: false,
+          presentation: 'modal',
           animation: 'slide_from_bottom',
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: background }]} edges={['top', 'bottom']}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: backgroundElevated, borderBottomColor: border }]}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.closeButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="close" size={28} color={textSecondary} />
-          </TouchableOpacity>
-          
-          <Text style={[styles.headerTitle, { color: text }]}>Look Details</Text>
-          
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={styles.deleteButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={24} color={danger} />
-          </TouchableOpacity>
+
+      <DismissHeader title="Look Details" />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Main Image */}
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: look.imageUri }} style={styles.image} resizeMode="cover" />
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Image */}
-          <View style={[styles.imageContainer, Elevations.level2]}>
-            <Image source={{ uri: params.imageUri }} style={styles.image} />
-          </View>
-
-          {/* Details */}
-          <View style={styles.detailsSection}>
-            {params.prompt && (
-              <View style={[styles.infoCard, { backgroundColor: backgroundElevated }]}>
-                <Text style={[styles.infoLabel, { color: textMuted }]}>Prompt Used</Text>
-                <Text style={[styles.infoText, { color: text }]}>{params.prompt}</Text>
+        {/* Look Info Section */}
+        <View style={[styles.infoSection, { backgroundColor: cardBackground }]}>
+          {/* Prompt */}
+          {look.prompt && (
+            <View style={styles.infoItem}>
+              <View style={styles.infoHeader}>
+                <Ionicons name="brush-outline" size={20} color={textSecondary} />
+                <Text style={[styles.infoLabel, { color: textSecondary }]}>
+                  Prompt Used:
+                </Text>
               </View>
-            )}
-
-            <View style={[styles.infoCard, { backgroundColor: backgroundElevated }]}>
-              <Text style={[styles.infoLabel, { color: textMuted }]}>Created On</Text>
-              <Text style={[styles.infoText, { color: text }]}>{formatDate(params.createdAt)}</Text>
+              <Text style={[styles.infoValue, { color: text }]}>{look.prompt}</Text>
             </View>
-          </View>
+          )}
 
-          {/* Delete Button */}
-          <TouchableOpacity
-            style={[styles.deleteButtonLarge, { backgroundColor: danger }]}
-            onPress={handleDelete}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="trash-outline" size={20} color={textOnAccent} />
-            <Text style={[styles.deleteButtonText, { color: textOnAccent }]}>
-              Delete from Collection
+          {/* Creation Date */}
+          <View style={styles.infoItem}>
+            <View style={styles.infoHeader}>
+              <Ionicons name="calendar-outline" size={20} color={textSecondary} />
+              <Text style={[styles.infoLabel, { color: textSecondary }]}>Created:</Text>
+            </View>
+            <Text style={[styles.infoValue, { color: text }]}>
+              {formatDate(look.createdAt)}
             </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Action Toolbar */}
+      <View style={[styles.actionToolbar, { backgroundColor: cardBackground }]}>
+        <ActionButton iconName="share-social" label="Share" onPress={handleShare} />
+        <ActionButton iconName="trash" label="Delete" onPress={handleDelete} />
+        <ActionButton iconName="sparkles" label="Create Similar" onPress={handleCreateSimilar} />
+      </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...Typography.title3,
-    flex: 1,
-    textAlign: 'center',
-  },
-  deleteButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: Spacing.xl,
+  },
   imageContainer: {
-    margin: Spacing.md,
-    borderRadius: Radii.lg,
-    overflow: 'hidden',
+    width: '100%',
     aspectRatio: 3 / 4,
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
-  detailsSection: {
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
+  infoSection: {
+    marginHorizontal: Spacing.lg,
+    borderRadius: Radii.xl,
+    padding: Spacing.lg,
+    ...Elevations.small,
   },
-  infoCard: {
-    padding: Spacing.md,
-    borderRadius: Radii.md,
+  infoItem: {
+    marginBottom: Spacing.md,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
   },
   infoLabel: {
     ...Typography.caption,
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: Spacing['2xs'],
+    marginLeft: Spacing.xs,
   },
-  infoText: {
+  infoValue: {
     ...Typography.body,
+    lineHeight: 24,
   },
-  deleteButtonLarge: {
+  actionToolbar: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: Spacing.md,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing['2xl'],
     paddingVertical: Spacing.md,
-    borderRadius: Radii.md,
-    gap: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    ...Elevations.small,
   },
-  deleteButtonText: {
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  errorText: {
+    ...Typography.h3,
+    textAlign: 'center',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  backButton: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: Radii.lg,
+    ...Elevations.small,
+  },
+  backButtonText: {
     ...Typography.button,
   },
 });
-
-export default CollectionDetailScreen;
-
