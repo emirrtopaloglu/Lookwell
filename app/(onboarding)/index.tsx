@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   NativeScrollEvent,
@@ -8,38 +8,38 @@ import {
   ScrollView,
   StyleSheet,
   View,
-} from 'react-native';
+} from "react-native";
 
-import DemoPage from '@/components/onboarding/DemoPage';
-import GetStartedPage from '@/components/onboarding/GetStartedPage';
-import PaginationDots from '@/components/onboarding/PaginationDots';
-import WelcomePage from '@/components/onboarding/WelcomePage';
-import { Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import DemoPage from "@/components/onboarding/DemoPage";
+import GetStartedPage from "@/components/onboarding/GetStartedPage";
+import PaginationDots from "@/components/onboarding/PaginationDots";
+import WelcomePage from "@/components/onboarding/WelcomePage";
+import { Colors, Spacing } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TOTAL_PAGES = 3;
 
 export default function OnboardingScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors[colorScheme ?? "light"];
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
-    if (!__DEV__)checkOnboardingStatus();
+    checkOnboardingStatus();
   }, []);
 
   const checkOnboardingStatus = async () => {
     try {
-      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-      if (hasCompleted === 'true') {
+      const hasCompleted = await AsyncStorage.getItem("hasCompletedOnboarding");
+      if (hasCompleted === "true") {
         // User has already completed onboarding, redirect to home
-        router.replace('/(tabs)');
+        router.replace("/(tabs)");
       }
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      console.error("Error checking onboarding status:", error);
     }
   };
 
@@ -50,7 +50,7 @@ export default function OnboardingScreen() {
   };
 
   const handleGetStarted = () => {
-    router.replace('/paywall');
+    router.replace("/paywall");
   };
 
   return (
@@ -85,10 +85,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   paginationContainer: {
-    position: 'absolute',
-    bottom: Math.max(Spacing['2xl'], SCREEN_WIDTH * 0.08),
+    position: "absolute",
+    bottom: Math.max(Spacing["2xl"], SCREEN_WIDTH * 0.08),
     left: 0,
     right: 0,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });
