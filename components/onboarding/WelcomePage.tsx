@@ -1,9 +1,9 @@
+import LottieView from 'lottie-react-native';
 import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Radii, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-const WardrobeGif = require("../../assets//images/wardrobe.gif")
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const IMAGE_SIZE = Math.min(SCREEN_WIDTH * 0.6, 280);
@@ -17,10 +17,11 @@ export default function WelcomePage() {
       <View style={styles.content}>
         <View style={styles.headerSection}>
           <View style={[styles.imageContainer, { backgroundColor: colors.accentSoft }]}>
-            <Image
-              source={WardrobeGif}
-              style={styles.image}
-              resizeMode="contain"
+            <LottieView
+              source={require('@/assets/Wardrobe.json')}
+              autoPlay
+              loop
+              style={styles.lottie}
             />
           </View>
         </View>
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  image: {
+  lottie: {
     width: '100%',
     height: '100%',
   },
