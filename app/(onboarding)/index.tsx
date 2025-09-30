@@ -28,7 +28,7 @@ export default function OnboardingScreen() {
   const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
-    checkOnboardingStatus();
+    if (!__DEV__)checkOnboardingStatus();
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -66,7 +66,7 @@ export default function OnboardingScreen() {
         style={styles.scrollView}
       >
         <WelcomePage />
-        <DemoPage />
+        <DemoPage isActive={currentPage === 1} />
         <GetStartedPage onGetStarted={handleGetStarted} />
       </ScrollView>
 

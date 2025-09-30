@@ -19,13 +19,24 @@ const DEMO_WIDTH = SCREEN_WIDTH * 0.85;
 const DEMO_HEIGHT = DEMO_WIDTH * 1.2;
 const HANDLE_SIZE = 50;
 
-export default function DemoComponent() {
+interface DemoComponentProps {
+  isActive: boolean;
+}
+
+export default function DemoComponent({ isActive }: DemoComponentProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const sliderPosition = useSharedValue(0);
 
   useEffect(() => {
+    // Only start animation when page is active
+    if (!isActive) {
+      // Reset to beginning when not active
+      sliderPosition.value = 0;
+      return;
+    }
+
     // Smooth easing configuration for natural motion
     const smoothEasing = Easing.bezier(0.25, 0.1, 0.25, 1); // Smooth ease-in-out
     
@@ -55,7 +66,7 @@ export default function DemoComponent() {
         false
       )
     );
-  }, []);
+  }, [isActive]);
 
   const afterImageStyle = useAnimatedStyle(() => ({
     width: sliderPosition.value,

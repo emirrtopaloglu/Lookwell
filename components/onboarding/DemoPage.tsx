@@ -7,7 +7,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function DemoPage() {
+interface DemoPageProps {
+  isActive: boolean;
+}
+
+export default function DemoPage({ isActive }: DemoPageProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -24,7 +28,7 @@ export default function DemoPage() {
         </View>
 
         <View style={styles.demoSection}>
-          <DemoComponent />
+          <DemoComponent isActive={isActive} />
         </View>
       </View>
     </View>
