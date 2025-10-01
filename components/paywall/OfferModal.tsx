@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+    Animated,
     Dimensions,
     Modal,
     Platform,
@@ -30,6 +31,48 @@ export default function OfferModal({
 }: OfferModalProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const [secondsLeft, setSecondsLeft] = useState(120);
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  // Derive MM:SS text
+  const timerText = useMemo(() => {
+    const m = Math.floor(secondsLeft / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (secondsLeft % 60)
+      .toString()
+      .padStart(2, '0');
+    return `${m}:${s}`;
+  }, [secondsLeft]);
+
+  // Countdown lifecycle
+  useEffect(() => {
+    if (!visible) return;
+    setSecondsLeft(120);
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Auto decline on expiry
+          onDecline();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [visible, onDecline]);
+
+  // Pulsing animation
+  useEffect(() => {
+    if (!visible) return;
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1.0, duration: 700, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [visible, pulse]);
 
   return (
     <Modal
@@ -56,11 +99,12 @@ export default function OfferModal({
             Before you go, we have a limited-time offer just for you
           </Text>
 
-          {/* Offer Card */}
-          <View
+          {/* Offer Card + Countdown */}
+          <Animated.View
             style={[
               styles.offerCard,
               { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+              { transform: [{ scale: pulse }] },
             ]}
           >
             <View style={styles.offerHeader}>
@@ -75,7 +119,13 @@ export default function OfferModal({
             <Text style={[styles.offerSubtext, { color: colors.textSecondary }]}>
               Your first year subscription
             </Text>
-          </View>
+            <View style={styles.timerPill}>
+              <Ionicons name="time" size={16} color={colors.textOnAccent} />
+              <Text style={[styles.timerText, { color: colors.textOnAccent }]}>
+                {timerText}
+              </Text>
+            </View>
+          </Animated.View>
 
           {/* Benefits */}
           <View style={styles.benefitsContainer}>
@@ -94,7 +144,7 @@ export default function OfferModal({
             <View style={styles.benefitRow}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               <Text style={[styles.benefitText, { color: colors.text }]}>
-                This offer expires in 24 hours
+                Hurry! This special price expires when the timer hits 00:00
               </Text>
             </View>
           </View>
@@ -190,6 +240,21 @@ const styles = StyleSheet.create({
   offerSubtext: {
     ...Typography.bodySmall,
     fontSize: Math.min(Typography.bodySmall.fontSize, SCREEN_WIDTH * 0.032),
+  },
+  timerPill: {
+    marginTop: Spacing.md,
+    alignSelf: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 8,
+    borderRadius: Radii.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.light.accent, // will be overridden by textOnAccent color usage
+  },
+  timerText: {
+    ...Typography.bodyStrong,
+    letterSpacing: 1,
   },
   benefitsContainer: {
     width: '100%',

@@ -104,7 +104,7 @@ export default function PaywallScreen() {
             title: 'Yearly',
             pricePerMonth: calculateMonthlyPrice(product.price, 12),
             totalPrice: product.localizedPrice || '$59.99',
-            billingPeriod: 'Billed annually',
+            billingPeriod: `Billed annually • ${product.localizedPrice || '$59.99'}`,
             savingsLabel: 'Save 38%',
             isBestValue: true,
             adaptyProduct: product,
@@ -129,7 +129,7 @@ export default function PaywallScreen() {
             title: 'Yearly',
             pricePerMonth: '$4.99',
             totalPrice: '$59.99',
-            billingPeriod: 'Billed annually',
+            billingPeriod: 'Billed annually • $59.99',
             savingsLabel: 'Save 38%',
             isBestValue: true,
           },
@@ -154,7 +154,7 @@ export default function PaywallScreen() {
           title: 'Yearly',
           pricePerMonth: '$4.99',
           totalPrice: '$59.99',
-          billingPeriod: 'Billed annually',
+          billingPeriod: 'Billed annually • $59.99',
           savingsLabel: 'Save 38%',
           isBestValue: true,
         },
@@ -307,9 +307,16 @@ export default function PaywallScreen() {
           </Text>
         </View>
 
-        {/* Free Trial Timeline */}
-        <View style={styles.timelineSection}>
-          <FreeTrialTimeline />
+        {/* Premium Features */}
+        <View style={styles.featuresSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}> 
+            Premium Features
+          </Text>
+          <View style={styles.featuresContainer}>
+            {premiumFeatures.map((feature, index) => (
+              <PremiumFeatureItem key={index} feature={feature} />
+            ))}
+          </View>
         </View>
 
         {/* Package Options */}
@@ -331,16 +338,9 @@ export default function PaywallScreen() {
           </View>
         )}
 
-        {/* Premium Features */}
-        <View style={styles.featuresSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Premium Features
-          </Text>
-          <View style={styles.featuresContainer}>
-            {premiumFeatures.map((feature, index) => (
-              <PremiumFeatureItem key={index} feature={feature} />
-            ))}
-          </View>
+        {/* Free Trial Timeline (moved down) */}
+        <View style={styles.timelineSection}>
+          <FreeTrialTimeline />
         </View>
 
         {/* CTA Button */}

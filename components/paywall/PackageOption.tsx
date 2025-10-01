@@ -63,7 +63,7 @@ export default function PackageOption({ package: pkg, isSelected, onSelect }: Pa
               </View>
             )}
           </View>
-          <Text style={[styles.billingPeriod, { color: colors.textSecondary }]}>
+          <Text style={[styles.billingPeriod, { color: colors.textSecondary }]}> 
             {pkg.billingPeriod}
           </Text>
         </View>
