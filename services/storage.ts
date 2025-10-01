@@ -30,13 +30,13 @@ export const StorageUtils = {
     await SecureStore.deleteItemAsync(StorageKeys.AUTH_TOKEN);
   },
 
-  // Device ID (regular storage)
+  // Device ID (use SecureStore to persist across iOS reinstalls via Keychain)
   setDeviceId: async (deviceId: string): Promise<void> => {
-    await AsyncStorage.setItem(StorageKeys.DEVICE_ID, deviceId);
+    await SecureStore.setItemAsync(StorageKeys.DEVICE_ID, deviceId);
   },
 
   getDeviceId: async (): Promise<string | null> => {
-    return await AsyncStorage.getItem(StorageKeys.DEVICE_ID);
+    return await SecureStore.getItemAsync(StorageKeys.DEVICE_ID);
   },
 
   // FCM Token (regular storage)
@@ -86,7 +86,7 @@ export const StorageUtils = {
     
     // Clear async storage
     const keys = [
-      StorageKeys.DEVICE_ID,
+      // Do NOT remove DEVICE_ID to keep it stable across app sessions
       StorageKeys.FCM_TOKEN,
       StorageKeys.FREE_TRIAL_COUNT,
       StorageKeys.USER_HAS_PRO,
