@@ -1,8 +1,11 @@
 import { DismissHeader } from '@/components/create/DismissHeader';
 import { GenerateButton } from '@/components/create/GenerateButton';
 import { PromptPreview } from '@/components/create/PromptPreview';
+import { StyleThemeBottomSheet } from '@/components/create/StyleThemeBottomSheet';
+import { StyleThemeSelector } from '@/components/create/StyleThemeSelector';
 import { UploaderSection } from '@/components/create/UploaderSection';
 import { ProcessingModal } from '@/components/modals/ProcessingModal';
+import type { StyleTheme } from '@/constants/style-themes';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,6 +23,8 @@ const CreateScreen = () => {
   const [clothingText, setClothingText] = useState<string>('');
   const [finalPrompt, setFinalPrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [selectedThemeId, setSelectedThemeId] = useState<string | undefined>();
+  const [isStyleSheetVisible, setIsStyleSheetVisible] = useState<boolean>(false);
 
   // Pre-fill prompt from navigation params
   useEffect(() => {
@@ -81,6 +86,29 @@ const CreateScreen = () => {
     pickImage('clothing');
   };
 
+  const handleClearUserImage = () => {
+    setUserImageUri(undefined);
+  };
+
+  const handleClearClothingImage = () => {
+    setClothingImageUri(undefined);
+  };
+
+  const handleOpenStyleSheet = () => {
+    setIsStyleSheetVisible(true);
+  };
+
+  const handleCloseStyleSheet = () => {
+    setIsStyleSheetVisible(false);
+  };
+
+  const handleSelectTheme = (theme: StyleTheme) => {
+    setSelectedThemeId(theme.id);
+    setClothingText(theme.prompt);
+    // Clear clothing image when selecting a theme
+    setClothingImageUri(undefined);
+  };
+
   const handleGenerate = () => {
     setIsGenerating(true);
     
@@ -110,7 +138,7 @@ const CreateScreen = () => {
   };
 
   const canGenerate = Boolean(
-    userImageUri && (clothingImageUri || clothingText)
+    userImageUri && (clothingImageUri || clothingText.trim())
   );
 
   return (
@@ -140,6 +168,13 @@ const CreateScreen = () => {
             onUserImagePress={handleUserImagePress}
             onClothingImagePress={handleClothingImagePress}
             onClothingTextChange={setClothingText}
+            onClearUserImage={handleClearUserImage}
+            onClearClothingImage={handleClearClothingImage}
+          />
+
+          <StyleThemeSelector
+            onPress={handleOpenStyleSheet}
+            hasSelection={!!selectedThemeId}
           />
 
           <PromptPreview prompt={finalPrompt} />
@@ -153,6 +188,14 @@ const CreateScreen = () => {
 
         {/* Processing Modal */}
         <ProcessingModal isVisible={isGenerating} />
+
+        {/* Style Theme Bottom Sheet */}
+        <StyleThemeBottomSheet
+          visible={isStyleSheetVisible}
+          onClose={handleCloseStyleSheet}
+          onSelectTheme={handleSelectTheme}
+          selectedThemeId={selectedThemeId}
+        />
       </SafeAreaView>
     </>
   );

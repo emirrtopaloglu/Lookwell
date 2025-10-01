@@ -8,6 +8,7 @@ interface ImageUploaderProps {
   label: string;
   imageUri?: string;
   onPress: () => void;
+  onClear?: () => void;
   placeholder?: string;
   hint?: string;
 }
@@ -16,6 +17,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   label,
   imageUri,
   onPress,
+  onClear,
   placeholder = 'Upload Photo',
   hint,
 }) => {
@@ -25,6 +27,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   const textMuted = useThemeColor({}, 'textMuted');
   const border = useThemeColor({}, 'border');
   const accent = useThemeColor({}, 'accent');
+  const scrim = useThemeColor({}, 'scrim');
 
   return (
     <View style={styles.container}>
@@ -45,7 +48,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         activeOpacity={0.8}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
+          <>
+            <Image source={{ uri: imageUri }} style={styles.image} />
+            {onClear && (
+              <TouchableOpacity
+                style={[styles.clearButton, { backgroundColor: scrim }]}
+                onPress={onClear}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="close-circle" size={32} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </>
         ) : (
           <View style={styles.placeholderContent}>
             <View style={[styles.iconContainer, { backgroundColor: accent + '15' }]}>
@@ -103,6 +117,13 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     ...Typography.bodySmall,
+  },
+  clearButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    borderRadius: Radii.full,
+    overflow: 'hidden',
   },
 });
 

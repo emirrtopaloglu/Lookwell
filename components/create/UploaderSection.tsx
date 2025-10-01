@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ClothingInput } from './ClothingInput';
 import { ImageUploader } from './ImageUploader';
+import { PrivacyNotice } from './PrivacyNotice';
 
 interface UploaderSectionProps {
   userImageUri?: string;
@@ -11,6 +12,8 @@ interface UploaderSectionProps {
   onUserImagePress: () => void;
   onClothingImagePress: () => void;
   onClothingTextChange: (text: string) => void;
+  onClearUserImage: () => void;
+  onClearClothingImage: () => void;
 }
 
 export const UploaderSection: React.FC<UploaderSectionProps> = ({
@@ -20,14 +23,20 @@ export const UploaderSection: React.FC<UploaderSectionProps> = ({
   onUserImagePress,
   onClothingImagePress,
   onClothingTextChange,
+  onClearUserImage,
+  onClearClothingImage,
 }) => {
+
   return (
     <View style={styles.container}>
+      <PrivacyNotice />
+      
       <View style={styles.row}>
         <ImageUploader
           label="1. Your Photo"
           imageUri={userImageUri}
           onPress={onUserImagePress}
+          onClear={userImageUri ? onClearUserImage : undefined}
           placeholder="Upload Your Photo"
           hint="Tip: A clear and well-lit portrait photo gives the best results."
         />
@@ -36,10 +45,11 @@ export const UploaderSection: React.FC<UploaderSectionProps> = ({
       <View style={styles.row}>
         <View style={styles.clothingContainer}>
           <ImageUploader
-            label="2. Clothing Photo"
+            label="2. Clothing Photo (Optional)"
             imageUri={clothingImageUri}
             onPress={onClothingImagePress}
-            placeholder="Clothing Photo"
+            onClear={clothingImageUri ? onClearClothingImage : undefined}
+            placeholder="Upload Clothing Photo"
           />
           
           {!clothingImageUri && (
