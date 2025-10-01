@@ -11,7 +11,9 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+import { DeviceRegistrationProvider } from "@/components/providers/DeviceRegistrationProvider";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -58,22 +60,26 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="paywall"
-            options={{ presentation: "fullScreenModal", headerShown: false }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <QueryProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <DeviceRegistrationProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="paywall"
+                options={{ presentation: "fullScreenModal", headerShown: false }}
+              />
+            </Stack>
+            <StatusBar style="auto" />
+          </DeviceRegistrationProvider>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </QueryProvider>
   );
 }

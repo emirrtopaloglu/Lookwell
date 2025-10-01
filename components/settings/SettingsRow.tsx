@@ -9,6 +9,7 @@ interface SettingsRowProps {
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  rightElement?: React.ReactNode;
 }
 
 export const SettingsRow: React.FC<SettingsRowProps> = ({
@@ -16,6 +17,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
   label,
   onPress,
   destructive = false,
+  rightElement,
 }) => {
   const text = useThemeColor({}, 'text');
   const textSecondary = useThemeColor({}, 'textSecondary');
@@ -36,7 +38,9 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
         <Text style={[styles.label, { color: textColor }]}>{label}</Text>
       </View>
       
-      <Ionicons name="chevron-forward" size={20} color={textSecondary} />
+      <View style={styles.rightContent}>
+        {rightElement || <Ionicons name="chevron-forward" size={20} color={textSecondary} />}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -55,6 +59,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     flex: 1,
+  },
+  rightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   label: {
     ...Typography.body,
