@@ -1,9 +1,9 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { apiClient } from '../services/api/client';
 import { deviceApi } from '../services/api/endpoints/device';
 import { StorageUtils } from '../services/storage';
-import type { RegisterDeviceRequest, UpdateDeviceRequest } from '../types/api';
+import type { RegisterDeviceRequest, UpdateDeviceProfileRequest, UpdateDeviceRequest } from '../types/api';
 import { getAppVersion, getDeviceId, getPlatform } from '../utils/device';
 
 /**
@@ -139,5 +139,21 @@ export function useHealthCheck() {
     queryKey: deviceKeys.health(),
     queryFn: deviceApi.healthCheck,
     refetchInterval: 60000, // Check every minute
+  });
+}
+
+/**
+ * Hook to update device profile via PATCH /v1/device/profile
+ */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profile: UpdateDeviceProfileRequest['profile']) => {
+      return deviceApi.updateProfile({ profile });
+    },
+    onSuccess: () => {
+      // Invalidate current device so profile is refreshed
+      queryClient.invalidateQueries({ queryKey: deviceKeys.current() });
+    },
   });
 }

@@ -4,10 +4,14 @@ import React from 'react';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useProfileCheck } from '@/hooks/useProfileCheck';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Check if profile is complete, redirect to profile-setup if not
+  useProfileCheck({ enabled: true, redirect: true });
 
   return (
     <Tabs

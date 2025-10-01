@@ -12,5 +12,6 @@ export const API_CONFIG = {
 export const API_ENDPOINTS = {
   HEALTH: '/v1/health',
   DEVICE: '/v1/device',
+  DEVICE_PROFILE: '/v1/device/profile',
 } as const;
 

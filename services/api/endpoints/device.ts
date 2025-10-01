@@ -3,6 +3,7 @@ import type {
     HealthResponse,
     RegisterDeviceRequest,
     RegisterDeviceResponse,
+    UpdateDeviceProfileRequest,
     UpdateDeviceRequest,
 } from '../../../types/api';
 import { api } from '../client';
@@ -41,6 +42,19 @@ export const deviceApi = {
    */
   healthCheck: async (): Promise<HealthResponse> => {
     const response = await api.get<HealthResponse>(API_ENDPOINTS.HEALTH);
+    return response.data;
+  },
+  
+  /**
+   * Update device profile (requires authentication)
+   */
+  updateProfile: async (
+    data: UpdateDeviceProfileRequest
+  ): Promise<CurrentDeviceResponse> => {
+    const response = await api.patch<CurrentDeviceResponse>(
+      API_ENDPOINTS.DEVICE_PROFILE,
+      data
+    );
     return response.data;
   },
 };

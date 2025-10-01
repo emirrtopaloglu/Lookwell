@@ -49,8 +49,14 @@ export default function OnboardingScreen() {
     setCurrentPage(page);
   };
 
-  const handleGetStarted = () => {
-    router.replace("/paywall");
+  const handleGetStarted = async () => {
+    try {
+      await AsyncStorage.setItem("hasCompletedOnboarding", "true");
+    } catch (error) {
+      console.error("Failed to persist onboarding flag:", error);
+    } finally {
+      router.replace("/profile-setup");
+    }
   };
 
   return (

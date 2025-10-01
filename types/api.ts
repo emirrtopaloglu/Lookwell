@@ -2,6 +2,8 @@
  * API Types based on OpenAPI specification
  */
 
+import type { UserProfile } from './profile';
+
 export type Platform = 'ios' | 'android' | 'web';
 
 export interface DeviceMetadata {
@@ -25,6 +27,7 @@ export interface Device {
   metadata: DeviceMetadata;
   registeredAt: string;
   lastSeen: string;
+  profile?: UserProfile | null;
 }
 
 export interface RegisterDeviceResponse {
@@ -46,5 +49,10 @@ export interface HealthResponse {
 export interface ErrorResponse {
   message: string;
   details?: unknown;
+}
+
+// Profile API types
+export interface UpdateDeviceProfileRequest {
+  profile: UserProfile;
 }
 
