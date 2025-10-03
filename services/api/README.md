@@ -194,9 +194,9 @@ function HealthCheckButton() {
 ## 🐛 Troubleshooting
 
 ### "Network error" hatası alıyorum
-- Backend'in çalıştığından emin olun: `http://localhost:3000`
+- Backend'in çalıştığından emin olun: `http://localhost:8080`
 - iOS simulator için localhost yerine IP kullanmanız gerekebilir
-- Android emulator için `10.0.2.2:3000` kullanın
+- Android emulator için `10.0.2.2:8080` kullanın
 
 ### Token kayboldu
 ```typescript
