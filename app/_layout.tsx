@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { DeviceRegistrationProvider } from "@/components/providers/DeviceRegistrationProvider";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { QueryProvider } from "@/providers/QueryProvider";
 
@@ -31,7 +30,7 @@ export default function RootLayout() {
     try {
       // GEÇİCİ: Adapty devre dışı - geçersiz API key crash'e neden oluyordu
       // Gerçek API key eklenince yorumları kaldırın
-      
+
       /*
       // Initialize Adapty SDK
       // Replace 'YOUR_PUBLIC_SDK_KEY' with your actual Adapty public SDK key
@@ -46,7 +45,7 @@ export default function RootLayout() {
         console.log("Paywall pre-fetch failed:", error);
       }
       */
-      
+
       console.log("App initialized without Adapty (testing mode)");
     } catch (error) {
       console.error("Failed to initialize:", error);
@@ -62,22 +61,25 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <DeviceRegistrationProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="paywall"
-                options={{ presentation: "fullScreenModal", headerShown: false }}
-              />
-            </Stack>
-            <StatusBar style="auto" />
-          </DeviceRegistrationProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen
+              name="(onboarding)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="paywall"
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
+          </Stack>
+          <StatusBar style="auto" />
         </ThemeProvider>
       </GestureHandlerRootView>
     </QueryProvider>
