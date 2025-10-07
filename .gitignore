@@ -49,3 +49,6 @@ prompts/
 specs/
 .kiro/
 .github/
+
+# env
+.env
