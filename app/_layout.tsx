@@ -14,6 +14,9 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { fal } from "@fal-ai/client";
+import { adapty } from 'react-native-adapty';
+
+adapty.activate('public_live_1wKaDWI1.M4wFuy9A5hooeZfujzWH');
 
 fal.config({
   credentials: process.env.EXPO_PUBLIC_FAL_API_KEY,
