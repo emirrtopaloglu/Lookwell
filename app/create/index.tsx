@@ -5,14 +5,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -60,6 +61,10 @@ export default function CreateStepOneScreen() {
     resultSignedUrl?: string;
   } | null>(null);
   const [libraryPermission, requestLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
 
   const ensureLibraryPermission = useCallback(
     async () => {
@@ -193,6 +198,21 @@ export default function CreateStepOneScreen() {
       style={[styles.safeArea, { backgroundColor: background }]}
       edges={['top']}
     >
+      {/* Header with Back Button */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBack}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Ionicons name="chevron-back" size={24} color={text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: text }]}>Create</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollView}
@@ -399,6 +419,29 @@ const SelectionButton = ({ label, icon, onPress, disabled }: SelectionButtonProp
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radii.md,
+  },
+  headerTitle: {
+    ...Typography.title3,
+    fontWeight: '600',
+  },
+  headerSpacer: {
+    width: 40,
   },
   scrollView: {
     flex: 1,
