@@ -36,7 +36,7 @@ export default function OnboardingScreen() {
       const hasCompleted = await AsyncStorage.getItem("hasCompletedOnboarding");
       if (hasCompleted === "true") {
         // User has already completed onboarding, redirect to home
-        // router.replace("/(tabs)");
+        router.replace("/(tabs)");
       }
     } catch (error) {
       console.error("Error checking onboarding status:", error);
