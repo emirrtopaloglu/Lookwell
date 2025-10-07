@@ -13,6 +13,11 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { fal } from "@fal-ai/client";
+
+fal.config({
+  credentials: process.env.EXPO_PUBLIC_FAL_API_KEY,
+});
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -78,7 +83,10 @@ export default function RootLayout() {
               name="paywall"
               options={{ presentation: "fullScreenModal", headerShown: false }}
             />
-            <Stack.Screen name="create/index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="create/index"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>

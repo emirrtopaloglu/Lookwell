@@ -2,9 +2,10 @@ import { StyleSpotlightCard } from '@/components/home/DailyLookCard';
 import { HeaderComponent } from '@/components/home/HeaderComponent';
 import { Radii, Spacing, Typography } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { getRecentPhotos, RecentPhoto } from '@/utils/recent-photos';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -16,9 +17,22 @@ export default function HomeScreen() {
   const border = useThemeColor({}, 'border');
   const router = useRouter();
 
+  const [recent, setRecent] = useState<RecentPhoto[]>([]);
+
   const handleStartCreation = () => {
     router.push('/create');
   };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const items = await getRecentPhotos();
+      if (mounted) setRecent(items);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: background }]} edges={['top']}>
@@ -44,6 +58,19 @@ export default function HomeScreen() {
             <Text style={[styles.quickStartButtonText, { color: textOnAccent }]}>Create your next look</Text>
           </Pressable>
         </View>
+
+        {recent.length > 0 ? (
+          <View style={styles.recentSection}>
+            <Text style={[styles.recentTitle, { color: text }]}>Recent Photos</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
+              {recent.map((p) => (
+                <View key={p.id} style={[styles.thumbCard, { borderColor: border }]}> 
+                  <Image source={{ uri: p.url }} style={styles.thumb} resizeMode="cover" />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -91,5 +118,28 @@ const styles = StyleSheet.create({
   },
   quickStartButtonText: {
     ...Typography.button,
+  },
+  recentSection: {
+    marginTop: Spacing['2xl'],
+  },
+  recentTitle: {
+    ...Typography.title3,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing['2xs'],
+  },
+  recentRow: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  thumbCard: {
+    width: 140,
+    height: 140,
+    borderRadius: Radii.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  thumb: {
+    width: '100%',
+    height: '100%',
   },
 });

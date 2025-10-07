@@ -1,7 +1,8 @@
 import { uploadTempImageAndGetSignedUrl } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { fal } from '@fal-ai/client';
 import * as ImagePicker from 'expo-image-picker';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,6 +31,7 @@ type LocalSearchParams = {
 };
 
 export default function CreateStepOneScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const accent = useThemeColor({}, 'accent');
@@ -140,9 +143,41 @@ export default function CreateStepOneScreen() {
         expiresInSeconds: 60 * 15,
       });
 
-      // 2) Skip Edge Functions/Workers – keep only Supabase Storage usage
-      setResultInfo({ sourcePath: upload.path });
-      Alert.alert('Uploaded', 'Photo uploaded securely. Processing will be wired next.');
+      const sourceSignedUrl = upload.signedUrl;
+      setResultInfo({ sourcePath: upload.path, resultSignedUrl: sourceSignedUrl });
+
+      // 2) Call FAL with the signed URL and subscribe to logs
+      const result = await fal.subscribe('fal-ai/nano-banana/edit', {
+        input: {
+          prompt:
+            'You are an expert fashion photographer AI. Transform the person in this image into a full-body fashion model photo suitable for an e-commerce website. The background must be a clean, neutral studio backdrop (light gray, #f0f0f0). The person should have a neutral, professional model expression. Preserve the person\'s identity, unique features, and body type, but place them in a standard, relaxed standing model pose. The final image must be photorealistic. Return ONLY the final image.',
+          image_urls: [sourceSignedUrl],
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === 'IN_PROGRESS') {
+            update.logs.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+
+      const resultUrl = pickImageUrlFromFalResult(result?.data);
+      if (!resultUrl) {
+        console.log('FAL result data:', result?.data);
+        console.log('FAL requestId:', result?.requestId);
+        Alert.alert('Processing error', 'Could not resolve the processed image URL.');
+        return;
+      }
+
+      // Navigate to next step with both source and result URLs
+      router.push({
+        pathname: '/create/result',
+        params: {
+          source: encodeURIComponent(sourceSignedUrl),
+          result: encodeURIComponent(resultUrl),
+          req: result?.requestId ?? '',
+        },
+      });
     } catch (error: unknown) {
       console.error('Continue flow failed:', error);
       Alert.alert('Error', (error as Error)?.message ?? 'Failed to process image. Please try again.');
@@ -234,6 +269,13 @@ export default function CreateStepOneScreen() {
           )}
         </View>
 
+        {isProcessing ? (
+          <View style={[styles.loadingOverlay, { backgroundColor: overlay }]}> 
+            <ActivityIndicator size="small" color={accent} style={styles.loadingSpinner} />
+            <Text style={[styles.loadingText, { color: textSecondary }]}>Uploading and generating…</Text>
+          </View>
+        ) : null}
+
         <View style={styles.actionGroup}>
           <SelectionButton
             label="Choose from library"
@@ -283,22 +325,29 @@ export default function CreateStepOneScreen() {
           style={[
             styles.continueButton,
             {
-              backgroundColor: selectedImageUri ? accent : colors.iconMuted,
+              backgroundColor: selectedImageUri && !isProcessing ? accent : colors.iconMuted,
             },
           ]}
           onPress={handleContinue}
-          disabled={!selectedImageUri}
+          disabled={!selectedImageUri || isProcessing}
+          accessibilityRole="button"
+          accessibilityLabel="Continue to process your selected photo"
         >
-          <Text
-            style={[
-              styles.continueButtonText,
-              {
-                color: selectedImageUri ? colors.textOnAccent : colors.textMuted,
-              },
-            ]}
-          >
-            Continue
-          </Text>
+          <View style={styles.buttonContent}> 
+            {isProcessing ? (
+              <ActivityIndicator size="small" color={colors.textOnAccent} style={styles.buttonSpinner} />
+            ) : null}
+            <Text
+              style={[
+                styles.continueButtonText,
+                {
+                  color: selectedImageUri && !isProcessing ? colors.textOnAccent : colors.textMuted,
+                },
+              ]}
+            >
+              {isProcessing ? 'Processing…' : 'Continue'}
+            </Text>
+          </View>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -486,4 +535,44 @@ const styles = StyleSheet.create({
   continueButtonText: {
     ...Typography.button,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingSpinner: {
+    marginBottom: Spacing['2xs'],
+  },
+  loadingText: {
+    ...Typography.bodySmall,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing['2xs'],
+  },
+  buttonSpinner: {
+    marginRight: Spacing['2xs'],
+  },
 });
+
+function pickImageUrlFromFalResult(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const d = data as Record<string, unknown>;
+  // Common shapes from FAL image models
+  const direct = typeof d['url'] === 'string' ? (d['url'] as string) : undefined;
+  if (direct) return direct;
+  const image = d['image'] as Record<string, unknown> | undefined;
+  if (image && typeof image['url'] === 'string') return image['url'] as string;
+  const images = d['images'] as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(images) && images.length > 0) {
+    const first = images[0];
+    if (first && typeof first['url'] === 'string') return first['url'] as string;
+  }
+  return undefined;
+}
