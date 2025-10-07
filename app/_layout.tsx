@@ -78,6 +78,7 @@ export default function RootLayout() {
               name="paywall"
               options={{ presentation: "fullScreenModal", headerShown: false }}
             />
+            <Stack.Screen name="create/index" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>

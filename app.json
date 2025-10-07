@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.emosto.lookwell",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Lookwell needs access to your photo library so you can choose portraits to style.",
+        "NSPhotoLibraryAddUsageDescription": "Lookwell saves your generated looks to the photo library when you choose to download them."
       }
     },
     "android": {
@@ -23,7 +25,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "output": "static",
@@ -31,6 +38,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos"
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -53,6 +67,7 @@
       "eas": {
         "projectId": "0c4dd979-fcd0-4146-827a-1e160c03872b"
       }
-    }
+    },
+    "owner": "emirtopaloglu"
   }
 }

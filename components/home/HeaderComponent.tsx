@@ -33,14 +33,9 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({
 
   const greeting = useMemo(() => getGreeting(), []);
 
-  const handleNotificationsPress = () => {
-    // TODO: Navigate to notifications
-    console.log('Notifications pressed');
-  };
 
   const handleSettingsPress = () => {
-    // TODO: Navigate to settings screen when implemented
-    console.log('Settings pressed');
+    router.push('/settings');
   };
 
   return (
@@ -50,9 +45,6 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({
           <Ionicons name="sparkles" size={20} color={accent} />
         </View>
         <View style={styles.greetingContainer}>
-          {showGreeting && (
-            <Text style={[styles.greeting, { color: textSecondary }]}>{greeting}</Text>
-          )}
           {subtitle && (
             <Text style={[styles.greeting, { color: textSecondary }]}>{subtitle}</Text>
           )}
@@ -63,15 +55,6 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({
       </View>
       
       <View style={styles.rightSection}>
-        <TouchableOpacity
-          onPress={handleNotificationsPress}
-          style={[styles.iconButton, { backgroundColor: icon + '08' }]}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="notifications-outline" size={22} color={icon} />
-          <View style={[styles.badge, { backgroundColor: accent }]} />
-        </TouchableOpacity>
-
         <TouchableOpacity
           onPress={handleSettingsPress}
           style={[styles.iconButton, { backgroundColor: icon + '08' }]}
