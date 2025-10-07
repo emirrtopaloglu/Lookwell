@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import type { AdaptyPaywall, AdaptyProduct } from 'react-native-adapty';
+import type { AdaptyPaywall, AdaptyPaywallProduct } from 'react-native-adapty';
 import { adapty } from 'react-native-adapty';
 
 import FreeTrialTimeline from '@/components/paywall/FreeTrialTimeline';
@@ -33,7 +33,7 @@ interface Package {
   billingPeriod: string;
   savingsLabel?: string;
   isBestValue?: boolean;
-  adaptyProduct?: AdaptyProduct;
+  adaptyProduct?: AdaptyPaywallProduct;
 }
 
 interface PremiumFeature {
@@ -74,7 +74,7 @@ export default function PaywallScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [offerModalVisible, setOfferModalVisible] = useState(false);
   const [paywall, setPaywall] = useState<AdaptyPaywall | null>(null);
-  const [discountProduct, setDiscountProduct] = useState<AdaptyProduct | null>(null);
+  const [discountProduct, setDiscountProduct] = useState<AdaptyPaywallProduct | null>(null);
 
   useEffect(() => {
     fetchPaywallData();
@@ -96,15 +96,17 @@ export default function PaywallScreen() {
 
       products.forEach((product) => {
         // Identify product type based on subscription period
-        const subscriptionPeriod = product.subscriptionPeriod?.unit?.toLowerCase();
+        const subscriptionPeriod = product.subscription?.subscriptionPeriod?.unit?.toLowerCase();
+        const price = product.price?.amount ? product.price.amount : 0;
+        const localizedPrice = product.price?.localizedString || `$${price.toFixed(2)}`;
         
         if (subscriptionPeriod === 'year' || product.vendorProductId.includes('year')) {
           mappedPackages.push({
             id: 'yearly',
             title: 'Yearly',
-            pricePerMonth: calculateMonthlyPrice(product.price, 12),
-            totalPrice: product.localizedPrice || '$59.99',
-            billingPeriod: `Billed annually • ${product.localizedPrice || '$59.99'}`,
+            pricePerMonth: calculateMonthlyPrice(price, 12),
+            totalPrice: localizedPrice,
+            billingPeriod: `Billed annually • ${localizedPrice}`,
             savingsLabel: 'Save 38%',
             isBestValue: true,
             adaptyProduct: product,
@@ -113,8 +115,8 @@ export default function PaywallScreen() {
           mappedPackages.push({
             id: 'monthly',
             title: 'Monthly',
-            pricePerMonth: product.localizedPrice || '$7.99',
-            totalPrice: product.localizedPrice || '$7.99',
+            pricePerMonth: localizedPrice,
+            totalPrice: localizedPrice,
             billingPeriod: 'Billed monthly',
             adaptyProduct: product,
           });
@@ -183,33 +185,51 @@ export default function PaywallScreen() {
 
   const handleStartTrial = async () => {
     const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
-    
+
     if (!selectedPkg?.adaptyProduct) {
       Alert.alert('Error', 'Product not available. Please try again.');
       return;
     }
 
     try {
-      const profile = await adapty.makePurchase(selectedPkg.adaptyProduct);
+      const purchaseResult = await adapty.makePurchase(selectedPkg.adaptyProduct);
       
-      // Check if purchase was successful
-      if (profile) {
-        Alert.alert(
-          'Success!',
-          'Your trial has started. Enjoy premium features!',
-          [
-            {
-              text: 'Get Started',
-              onPress: () => router.replace('/(tabs)'),
-            },
-          ]
-        );
+      switch (purchaseResult.type) {
+        case 'success':
+          const isSubscribed = purchaseResult.profile?.accessLevels?.premium?.isActive;
+          
+          if (isSubscribed) {
+            Alert.alert(
+              'Success!',
+              'Your subscription is now active. Enjoy premium features!',
+              [
+                {
+                  text: 'Get Started',
+                  onPress: () => router.replace('/(tabs)'),
+                },
+              ]
+            );
+          } else {
+            Alert.alert('Purchase Failed', 'Subscription not activated. Please try again.');
+          }
+          break;
+        case 'user_cancelled':
+          // User cancelled the purchase - no action needed
+          break;
+        case 'pending':
+          Alert.alert(
+            'Purchase Pending',
+            'Your purchase is being processed. You will be notified when it completes.',
+            [{ text: 'OK' }]
+          );
+          break;
+        default:
+          Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
+          break;
       }
     } catch (error: any) {
-      if (error.adaptyCode !== 'userCancelled') {
-        Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
-        console.error('Purchase error:', error);
-      }
+      console.error('Purchase error:', error);
+      Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     }
   };
 
@@ -223,7 +243,7 @@ export default function PaywallScreen() {
       if (hasAccess) {
         Alert.alert(
           'Success!',
-          'Your purchases have been restored.',
+          'Your purchases have been restored. Welcome back!',
           [
             {
               text: 'Continue',
@@ -246,34 +266,75 @@ export default function PaywallScreen() {
     // Use the discounted yearly product if available
     const yearlyPackage = packages.find((pkg) => pkg.id === 'yearly');
     
-    if (yearlyPackage?.adaptyProduct) {
-      try {
-        const profile = await adapty.makePurchase(yearlyPackage.adaptyProduct);
-        
-        if (profile) {
+    if (!yearlyPackage?.adaptyProduct) {
+      Alert.alert('Error', 'Product not available. Please try again.');
+      return;
+    }
+
+    try {
+      const purchaseResult = await adapty.makePurchase(yearlyPackage.adaptyProduct);
+      
+      switch (purchaseResult.type) {
+        case 'success':
+          const isSubscribed = purchaseResult.profile?.accessLevels?.premium?.isActive;
+          
+          if (isSubscribed) {
+            Alert.alert(
+              'Success!',
+              'Thank you for subscribing with the exclusive discount!',
+              [
+                {
+                  text: 'Get Started',
+                  onPress: () => router.replace('/(tabs)'),
+                },
+              ]
+            );
+          } else {
+            Alert.alert('Purchase Failed', 'Subscription not activated. Please try again.');
+          }
+          break;
+        case 'user_cancelled':
+          // User cancelled the purchase - no action needed
+          break;
+        case 'pending':
           Alert.alert(
-            'Success!',
-            'Thank you for subscribing with the exclusive discount!',
-            [
-              {
-                text: 'Get Started',
-                onPress: () => router.replace('/(tabs)'),
-              },
-            ]
+            'Purchase Pending',
+            'Your purchase is being processed. You will be notified when it completes.',
+            [{ text: 'OK' }]
           );
-        }
-      } catch (error: any) {
-        if (error.adaptyCode !== 'userCancelled') {
+          break;
+        default:
           Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
-          console.error('Offer purchase error:', error);
-        }
+          break;
       }
+    } catch (error: any) {
+      console.error('Offer purchase error:', error);
+      Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     }
   };
 
   const handleOfferDecline = () => {
     setOfferModalVisible(false);
     router.replace('/(tabs)');
+  };
+
+  const handleRedeemOfferCode = async () => {
+    if (Platform.OS === 'ios') {
+      try {
+        await adapty.presentCodeRedemptionSheet();
+      } catch (error) {
+        console.error('Offer code redemption error:', error);
+        Alert.alert(
+          'Redemption Failed',
+          'Unable to open offer code redemption. Please try again or contact support.'
+        );
+      }
+    } else {
+      Alert.alert(
+        'Not Available',
+        'Offer code redemption is only available on iOS devices.'
+      );
+    }
   };
 
   const selectedPkgData = packages.find((pkg) => pkg.id === selectedPackage);
@@ -369,16 +430,30 @@ export default function PaywallScreen() {
           </Text>
         )}
 
-        {/* Restore Purchases Button */}
-        <TouchableOpacity
-          style={styles.restoreButton}
-          onPress={handleRestorePurchases}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.restoreButtonText, { color: colors.textSecondary }]}>
-            Restore Purchases
-          </Text>
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.restoreButton}
+            onPress={handleRestorePurchases}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.restoreButtonText, { color: colors.textSecondary }]}>
+              Restore Purchases
+            </Text>
+          </TouchableOpacity>
+
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={styles.restoreButton}
+              onPress={handleRedeemOfferCode}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.restoreButtonText, { color: colors.textSecondary }]}>
+                Redeem Offer Code
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Legal Links */}
         <View style={styles.legalLinksContainer}>
@@ -496,10 +571,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: Spacing.xl,
   },
+  actionButtonsContainer: {
+    marginBottom: Spacing.lg,
+  },
   restoreButton: {
     paddingVertical: Spacing.md,
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   restoreButtonText: {
     ...Typography.bodyStrong,
